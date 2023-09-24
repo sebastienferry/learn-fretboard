@@ -1,9 +1,10 @@
 <script setup>
 import { ref } from 'vue'
 
+let counter=0;
 const playing = ref(false);
 const difficulty = ref(1);
-const speed = ref(5000);
+const speed = ref(15000);
 const challenge = ref('')
 const strings = ref([
     { id: 1, x: -100, y: 0,   empty: false, current: "" },
@@ -15,27 +16,31 @@ const strings = ref([
 ])
 const notes = [
     { n: ["C"] },   //1
-    { n: ["C#"] },  //2
+    { n: ["C#", "Db"] },  //2
     { n: ["D"] },   //3
-    { n: ["D#"] },  //4
+    { n: ["D#", "Eb"] },  //4
     { n: ["E"] },   //5
     { n: ["F"] },   //6
-    { n: ["F#"] },  //7
+    { n: ["F#", "Gb"] },  //7
     { n: ["G"] },   //8
-    { n: ["G#"] },  //9
+    { n: ["G#", "Ab"] },  //9
     { n: ["A"] },   //10
-    { n: ["A#"] },  //11
+    { n: ["A#", "Bb"] },  //11
     { n: ["B"] }    //12 
 ]
 
 function __debug(str){
-    if (true) {
+    if (false) {
         console.log(str);
     }    
 }
 
 function getNoteName(id) {
-    return notes[id-1].n[0];
+    if(notes[id-1].n.length > 1)
+    {
+        return notes[id-1].n[counter%2];
+    }
+    return notes[id-1].n[0];    
 }
 
 class Tuning{
@@ -101,25 +106,42 @@ function playGame(play) {
     }    
 }
 
+function resetBoard(){
+    for(var i=0;i<6;i++){
+        strings.value[i].x = -200;
+        strings.value[i].empty = false;
+    }
+}
+
 function gameLoop() {
     if(playing.value)
     {
+        // challenge
+        counter++;
         let noteId = Math.floor(Math.random() * 12) + 1;
-        let noteName = getNoteName(noteId);    
+        let noteName = getNoteName(noteId);
         challenge.value = noteName;
+        resetBoard();
 
-        timeoutId = setTimeout(() => {        
-            
+        // let thing
+        timeoutId = setTimeout(() => {            
+
+            // display result and start over
             for(var i=6; i >= (6 - (difficulty.value - 1)); i--) {
                 let fret = StandardTuning.getFret(i, noteId);
                 setCurrent(i, challenge.value);
                 moveToFret(i, fret);
             }
 
-            // continue playing ?
-            if(playing.value) {
-                gameLoop();
-            }
+            challenge.value = "";
+            
+            // start over aver 5 secs
+            timeoutId = setTimeout(() => {
+                if(playing.value) {
+                    gameLoop();
+                }
+            }, 5000);
+
         }, speed.value);
     }    
 }
@@ -127,6 +149,7 @@ function gameLoop() {
 </script>
 
 <template>
+    {{  speed }}
     <div class="outer">
         <div class="inner center">        
             <span class="challenge">{{ challenge }}</span><br />        
@@ -140,12 +163,12 @@ function gameLoop() {
                 <option value="6">6</option>            
             </select>
             Speed:
-            <select name="speed" id="speed" @onchange="(e) => { speed = parseInt(e.target.value); }">
-                <option value="5000">5 secs</option>
-                <option value="8000">8 secs</option>
-                <option value="10000">10 secs</option>
+            <select name="speed" id="speed" @change="(e) => { speed = parseInt(e.target.value); }">
+                <option value="15000">15 secs</option>
                 <option value="12000">12 secs</option>
-                <option value="15000">15 secs</option>                        
+                <option value="10000">10 secs</option>
+                <option value="8000">8 secs</option>
+                <option value="5000">5 secs</option>
             </select>
             <button v-if="!playing" @click="() => { playGame(true); }">Start</button>
             <button v-if="playing" @click="() => { playGame(false); }">Stop</button><br />
