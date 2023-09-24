@@ -3,7 +3,7 @@ import { ref } from 'vue'
 
 const playing = ref(false);
 const difficulty = ref(1);
-const speed = ref(2000);
+const speed = ref(5000);
 const challenge = ref('')
 const strings = ref([
     { id: 1, x: -100, y: 0,   empty: false, current: "" },
@@ -140,8 +140,7 @@ function gameLoop() {
                 <option value="6">6</option>            
             </select>
             Speed:
-            <select name="speed" id="speed" @onchange="(e) => { speed = e.target.value; }">
-                <option value="2000">2 secs</option>
+            <select name="speed" id="speed" @onchange="(e) => { speed = parseInt(e.target.value); }">
                 <option value="5000">5 secs</option>
                 <option value="8000">8 secs</option>
                 <option value="10000">10 secs</option>
